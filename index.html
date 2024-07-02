@@ -11,7 +11,7 @@
 <body>
   <main id="main">
     <div class="grid-settings" id="gridConfig">
-      <span id="containerMinimize">_</span>
+      <span id="containerMinimize">&#9881;</span>
       <h3>Configurações do Grid</h3>
       <!-- largura -->
       <label for="gridWidth">Largura do Grid:</label>
@@ -27,7 +27,7 @@
 
       <button type="submit" id="applyGridSettings">Aplicar Configurações</button>
     </div>
-    <div class="grid-container">
+    <div class="grid-container" id="gridContainer">
       <canvas id="rpgCanvas"></canvas>
     </div>
     <div class="context-menu" id="contextMenu">
@@ -41,10 +41,10 @@
       <span id="close-btn">x</span>
       <h3>Adicionar Token</h3>
       <label for="tokenName">Nome do Token:</label>
-      <input type="text" id="tokenName" placeholder="Nome do Token" value="tk1">
+      <input type="text" id="tokenName" placeholder="Nome do Token" value="John Doe">
 
       <label for="movementRange">Deslocamento (em quadrados):</label>
-      <input type="number" id="movementRange" placeholder="Deslocamento" value="5">
+      <input type="number" id="movementRange" placeholder="Deslocamento" value="7">
 
       <!-- token img -->
       <label for="tokenImage" class="custom-file-label" id="tokenImgLabel">Escolha uma imagem do token...</label>

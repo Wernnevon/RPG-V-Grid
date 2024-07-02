@@ -43,22 +43,14 @@ document.addEventListener("DOMContentLoaded", () => {
   minGridConfig.addEventListener("click", minimizeConfig);
 
   function minimizeConfig() {
+    minGridConfig.classList.toggle("setting-toggle");
     const confGrid = document.getElementById("gridConfig");
-    const minBtn = document.getElementById("containerMinimize");
-    if (minBtn.innerHTML === "□") {
+    if (confGrid.style.width === "20px") {
       confGrid.style.width = "300px";
       confGrid.style.height = "auto";
-      confGrid.style.padding = "20px";
-      minBtn.style.left = "auto";
-      minBtn.style.right = "10px";
-      minBtn.innerHTML = "_";
     } else {
       confGrid.style.width = "20px";
-      confGrid.style.height = "20px";
-      confGrid.style.padding = "0px";
-      minBtn.style.left = "4px";
-      minBtn.style.right = "auto";
-      minBtn.innerHTML = "□";
+      confGrid.style.height = "0px";
     }
   }
 
@@ -188,18 +180,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return tokens.find((token) => token.x === gridX && token.y === gridY);
   }
 
+  let offsetX = 0; // Offset para o scroll horizontal
+  let offsetY = 0; // Offset para o scroll vertical
+  let isDraggingCanvas = false;
+  let startDragOffset = { x: 0, y: 0 };
+
   // Evento de clique para adicionar/mover/remover tokens
   canvas.addEventListener("mousedown", handleCanvasMouseDown);
 
   function handleCanvasMouseDown(event) {
+    closeMenuOrForm();
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
     const clickedToken = findToken(x, y);
     if (clickedToken) {
+      selectedToken = clickedToken;
       if (event.button === 2) {
-        selectedToken = clickedToken;
         showContextMenu(event.pageX, event.pageY);
       } else {
         selectedToken = clickedToken;
@@ -209,6 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else {
       if (event.button !== 2) {
+        // Ativa o scroll
+        isDraggingCanvas = true;
+        startDragOffset = { x: x + offsetX, y: y + offsetY };
+      } else {
         // Mostra o formulário próximo ao token clicado
         showForm(event.pageX, event.pageY);
         tokenPosition.x = Math.floor(x / gridSize);
@@ -221,31 +223,44 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("mousemove", handleCanvasMouseMove);
 
   function handleCanvasMouseMove(event) {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
     if (isMovingToken && selectedToken) {
-      closeMenuOrForm();
-      const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const gridX = Math.floor(x / gridSize);
+      const gridY = Math.floor(y / gridSize);
+      if (
+        Math.abs(gridX - initialTokenPosition.x) <=
+          selectedToken.movementRange &&
+        Math.abs(gridY - initialTokenPosition.y) <= selectedToken.movementRange
+      ) {
+        selectedToken.x = gridX;
+        selectedToken.y = gridY;
+      }
+      redraw();
+    } else if (isDraggingCanvas) {
+      const scrollToX = startDragOffset.x - x;
+      const scrollToY = startDragOffset.y - y;
 
-      // Calcula a nova posição do token com base no offset
-      let gridX = Math.floor(x / gridSize);
-      let gridY = Math.floor(y / gridSize);
-
-      // Limita o movimento dentro do raio especificado por movementRange
-      const minX = initialTokenPosition.x - selectedToken.movementRange;
-      const maxX = initialTokenPosition.x + selectedToken.movementRange;
-      const minY = initialTokenPosition.y - selectedToken.movementRange;
-      const maxY = initialTokenPosition.y + selectedToken.movementRange;
-
-      gridX = Math.min(Math.max(gridX, minX), maxX);
-      gridY = Math.min(Math.max(gridY, minY), maxY);
-
-      // Atualiza as coordenadas do token
-      selectedToken.x = gridX;
-      selectedToken.y = gridY;
-
-      // Redesenha o canvas
-      redraw(selectedToken);
+      offsetX =
+        scrollToX < 0
+          ? 0
+          : scrollToX > document.body.scrollWidth
+          ? document.body.scrollWidth
+          : scrollToX;
+      offsetY =
+        scrollToY < 0
+          ? 0
+          : scrollToY > document.body.scrollHeight
+          ? document.body.scrollHeight
+          : scrollToY;
+      window.scrollTo({
+        left: offsetX,
+        top: offsetY,
+        behavior: "smooth",
+      });
+      redraw();
     }
   }
 
@@ -253,12 +268,9 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("mouseup", handleCanvasMouseUp);
 
   function handleCanvasMouseUp() {
-    if (isMovingToken) {
-      isMovingToken = false;
-      selectedToken = null;
-      initialTokenPosition = { x: -10, y: -10 }; // Reinicia a posição inicial do token
-      redraw();
-    }
+    isMovingToken = false;
+    isDraggingCanvas = false;
+    redraw();
   }
 
   // Função para mostrar o formulário de criação de token
@@ -337,8 +349,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function resetForm() {
     tokenPosition.x = 0;
     tokenPosition.y = 0;
-    document.getElementById("tokenName").value = "";
-    document.getElementById("movementRange").value = "";
+    document.getElementById("tokenName").value = "John Doe";
+    document.getElementById("movementRange").value = "7";
     document.getElementById("tokenImage").value = "";
     hideTokenForm();
   }
@@ -348,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
     drawGrid();
     drawTokens();
     tokens.forEach((token) => {
-      if (token === selectedToken) drawMovementArea(token);
+      if (token === selectedToken && isMovingToken) drawMovementArea(token);
     });
   }
 
@@ -418,4 +430,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Inicializa o canvas
   redraw();
+
+  document.addEventListener("mousewheel", handleDisbleWheel, {
+    passive: false,
+  });
+
+  document.addEventListener("DOMMouseScroll", handleDisbleWheel, {
+    passive: false,
+  });
+
+  function handleDisbleWheel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
 });
