@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="src/style.css">
+
+</head>
+
+<body>
+  <main id="main">
+    <div class="grid-settings" id="gridConfig">
+      <span id="containerMinimize">_</span>
+      <h3>Configurações do Grid</h3>
+      <!-- largura -->
+      <label for="gridWidth">Largura do Grid:</label>
+      <input type="number" id="gridWidth" value="50">
+
+      <!-- altura -->
+      <label for="gridHeight">Altura do Grid:</label>
+      <input type="number" id="gridHeight" value="50">
+
+      <!-- fundo -->
+      <label for="gridBackground" class="custom-file-label" id="imageInputLabel">Escolha uma imagem de fundo...</label>
+      <input type="file" id="gridBackground" accept="image/*" class="custom-file-input">
+
+      <button type="submit" id="applyGridSettings">Aplicar Configurações</button>
+    </div>
+    <div class="grid-container">
+      <canvas id="rpgCanvas"></canvas>
+    </div>
+    <div class="context-menu" id="contextMenu">
+      <ul>
+        <li id="editToken">Editar Token</li>
+        <li id="removeToken">Remover Token</li>
+      </ul>
+    </div>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="token-form" id="tokenForm">
+      <span id="close-btn">x</span>
+      <h3>Adicionar Token</h3>
+      <label for="tokenName">Nome do Token:</label>
+      <input type="text" id="tokenName" placeholder="Nome do Token" value="tk1">
+
+      <label for="movementRange">Deslocamento (em quadrados):</label>
+      <input type="number" id="movementRange" placeholder="Deslocamento" value="5">
+
+      <!-- token img -->
+      <label for="tokenImage" class="custom-file-label" id="tokenImgLabel">Escolha uma imagem do token...</label>
+      <input type="file" id="tokenImage" accept="image/*" class="custom-file-input">
+
+      <button type="submit" id="addTokenBtn">Adicionar Token</button>
+    </div>
+  </main>
+  <script src="src/script.js"></script>
+</body>
+
+</html>
