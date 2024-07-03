@@ -2,6 +2,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #333;
 }
 
 body::-webkit-scrollbar {
@@ -11,7 +12,6 @@ body::-webkit-scrollbar {
 
 main {
   display: flex;
-  justify-content: center;
   width: 100%;
   height: 100%;
   gap: 10px;
@@ -31,6 +31,7 @@ main {
   border: 1px solid #ccc;
   border-radius: 5px;
   overflow: hidden;
+  z-index: 10;
 }
 
 .grid-settings span {
@@ -78,16 +79,44 @@ main {
   background-color: #45a049;
 }
 
-.grid-container {
+.zoom-controls {
+  position: fixed;
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  right: 10px;
+  top: 10px;
+}
+
+.zoom-controls div {
+  display: flex;
+  background-color: #f0f0f0;
+  padding: 5px;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  position: relative;
+  width: 20px;
+}
+
+.zoom-controls div:hover {
+  cursor: pointer;
+}
+
+.zoom-controls div img {
   width: 100%;
-  height: 100%;
+
+}
+
+.grid-container {
+  margin: auto;
 }
 
 canvas {
   border: 1px solid black;
   width: max-content;
   height: max-content;
+  zoom: 1;
 }
 
 
@@ -156,8 +185,7 @@ canvas:active {
   cursor: pointer;
 }
 
-.token-form input,
-.token-form select {
+.token-form input {
   margin-bottom: 5px;
   display: block;
   width: 100%;

@@ -3,6 +3,25 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
   });
 
+  document.getElementById("zoomIn").addEventListener("click", () => {
+    zoom = zoom < 1 ? 1 : zoom;
+    zoom += 0.1;
+    applyZoom();
+  });
+
+  document.getElementById("zoomOut").addEventListener("click", () => {
+    zoom = zoom > 1 ? 1 : zoom;
+    zoom -= 0.1;
+    applyZoom();
+  });
+
+  function applyZoom() {
+    gridSize = Math.ceil(gridSize * zoom);
+    canvas.width = Math.ceil(canvas.width * zoom);
+    canvas.height = Math.ceil(canvas.height * zoom);
+    redraw();
+  }
+
   const inputBgImg = document.getElementById("gridBackground");
   const labelBgImg = document.getElementById("imageInputLabel");
 
@@ -21,9 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const canvas = document.getElementById("rpgCanvas");
   const ctx = canvas.getContext("2d");
-  let gridSize = 80; // Tamanho de cada célula do grid
-  canvas.width = 50 * gridSize;
-  canvas.height = 50 * gridSize;
+  let gridSize = 40; // Tamanho de cada célula do grid
+  let zoom = 1;
+  canvas.width = 24 * gridSize;
+  canvas.height = 23 * gridSize;
   let tokens = [];
   let selectedToken = null;
   let isMovingToken = false;
@@ -131,12 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const startX = Math.max(initialTokenPosition.x - token.movementRange, 0);
     const endX = Math.min(
       initialTokenPosition.x + token.movementRange,
-      canvas.width / gridSize - 1
+      Math.round(canvas.width / gridSize) - 1
     );
     const startY = Math.max(initialTokenPosition.y - token.movementRange, 0);
     const endY = Math.min(
       initialTokenPosition.y + token.movementRange,
-      canvas.height / gridSize - 1
+      Math.round(canvas.height / gridSize) - 1
     );
 
     for (let x = startX; x <= endX; x++) {
@@ -203,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedToken = clickedToken;
         isMovingToken = true;
         initialTokenPosition = { x: selectedToken.x, y: selectedToken.y };
-        redraw(selectedToken);
+        redraw();
       }
     } else {
       if (event.button !== 2) {
@@ -256,11 +276,11 @@ document.addEventListener("DOMContentLoaded", () => {
           ? document.body.scrollHeight
           : scrollToY;
       window.scrollTo({
-        left: offsetX,
-        top: offsetY,
+        left: offsetX * 2,
+        top: offsetY * 2,
         behavior: "smooth",
       });
-      redraw();
+      // redraw();
     }
   }
 
@@ -404,6 +424,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("applyGridSettings")
     .addEventListener("click", function () {
+      zoom = 1;
+      gridSize = parseInt(document.getElementById("gridSize").value, 10);
       canvas.width =
         parseInt(document.getElementById("gridWidth").value, 10) * gridSize;
       canvas.height =
@@ -444,4 +466,12 @@ document.addEventListener("DOMContentLoaded", () => {
     e.stopPropagation();
     return false;
   }
+
+  // Definir uma imagem de fundo padrão
+  const defaultBackgroundImage = new Image();
+  defaultBackgroundImage.onload = function () {
+    backgroundImage = defaultBackgroundImage;
+    redraw();
+  };
+  defaultBackgroundImage.src = "src/assets/defaultBackground.jpeg";
 });

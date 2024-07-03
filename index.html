@@ -10,22 +10,34 @@
 
 <body>
   <main id="main">
-    <div class="grid-settings" id="gridConfig">
+    <div class="grid-settings" id="gridConfig" title="Configurações do grid">
       <span id="containerMinimize">&#9881;</span>
       <h3>Configurações do Grid</h3>
       <!-- largura -->
       <label for="gridWidth">Largura do Grid:</label>
-      <input type="number" id="gridWidth" value="50">
+      <input type="number" id="gridWidth" value="24">
 
       <!-- altura -->
       <label for="gridHeight">Altura do Grid:</label>
-      <input type="number" id="gridHeight" value="50">
+      <input type="number" id="gridHeight" value="23">
+
+      <label for="gridSize">Tamanho da tile:</label>
+      <input type="number" id="gridSize" value="40">
 
       <!-- fundo -->
       <label for="gridBackground" class="custom-file-label" id="imageInputLabel">Escolha uma imagem de fundo...</label>
       <input type="file" id="gridBackground" accept="image/*" class="custom-file-input">
 
       <button type="submit" id="applyGridSettings">Aplicar Configurações</button>
+    </div>
+    <div class="zoom-controls">
+      <div id="zoomIn" title="Mais Zoom">
+        <img src="src/assets/icons/zoom-in.png" alt="Zoom In">
+      </div>
+      <div id="zoomOut" title="Menos Zoom">
+        <img src="src/assets/icons/zoom-out.png" alt="Zoom Out">
+
+      </div>
     </div>
     <div class="grid-container" id="gridContainer">
       <canvas id="rpgCanvas"></canvas>
