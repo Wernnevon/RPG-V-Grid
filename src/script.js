@@ -1,3 +1,5 @@
+const socket = new WebSocket("wss://arda-vtt-server.onrender.com");
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("main").addEventListener("contextmenu", (event) => {
     event.preventDefault();
@@ -32,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const inputTokenImg = document.getElementById("tokenImage");
   const labelTokenImg = document.getElementById("tokenImgLabel");
-  const tooltip = document.getElementById("tooltip");
 
   inputTokenImg.addEventListener("change", function () {
     const fileName = this.files[0].name;
@@ -188,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
         name: name || "Token " + (tokens.length + 1),
         movementRange: movementRange || 1,
         image: image || null,
+        id: crypto.randomUUID(),
       };
       tokens.push(token);
     }
@@ -259,6 +261,16 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedToken.x = gridX;
         selectedToken.y = gridY;
       }
+      // Quando o token for movido ou criado, envie uma atualização
+      const updatedToken = {
+        id: selectedToken.id,
+        x: selectedToken.x,
+        y: selectedToken.y,
+        movementRange: selectedToken.movementRange,
+        name: selectedToken.name,
+      };
+
+      sendTokenUpdate(updatedToken);
       redraw();
     } else if (isDraggingCanvas) {
       const scrollToX = startDragOffset.x - x;
@@ -536,4 +548,45 @@ document.addEventListener("DOMContentLoaded", () => {
     redraw();
   };
   defaultBackgroundImage.src = "src/assets/defaultBackground.jpeg";
+
+  // Quando a conexão for aberta
+  socket.addEventListener("open", () => {
+    console.log("Conectado ao servidor WebSocket.");
+  });
+
+  // Quando receber uma mensagem do servidor
+  socket.addEventListener("message", (event) => {
+    console.log(event);
+    const data = JSON.parse(event.data);
+
+    if (data.type === "welcome") {
+      console.log(data.message);
+    }
+
+    if (data.type === "update") {
+      updateToken(data.token);
+    }
+  });
+
+  // Enviar dados para o servidor
+  function sendTokenUpdate(token) {
+    socket.send(
+      JSON.stringify({
+        type: "update",
+        token: token, // Dados do token
+      })
+    );
+  }
+
+  function updateToken(token) {
+    // Atualiza a posição do token recebido
+    const existingToken = tokens.find((t) => t.id === token.id);
+    if (existingToken) {
+      existingToken.x = token.x;
+      existingToken.y = token.y;
+    } else {
+      tokens.push(token);
+    }
+    redraw();
+  }
 });
