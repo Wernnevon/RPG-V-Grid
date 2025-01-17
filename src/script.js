@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const inputTokenImg = document.getElementById("tokenImage");
   const labelTokenImg = document.getElementById("tokenImgLabel");
+  const tooltip = document.getElementById("tooltip");
 
   inputTokenImg.addEventListener("change", function () {
     const fileName = this.files[0].name;
@@ -282,8 +283,69 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       // redraw();
     }
+
+    const hoveredToken = findToken(x, y); // Verifica se há um token no local do cursor
+    redraw(); // Redesenha o canvas para limpar nomes antigos
+
+    if (hoveredToken) {
+      displayTokenName(hoveredToken);
+    }
   }
 
+  // Função para exibir o nome do token com fundo transparente
+  function displayTokenName(token) {
+    const text = token.name;
+    const padding = 10;
+    const borderRadius = 8;
+
+    ctx.font = "14px Arial";
+    const textWidth = ctx.measureText(text).width;
+    const textHeight = 16; // Altura aproximada do texto
+
+    const tooltipX = token.x * gridSize;
+    const tooltipY = token.y * gridSize;
+
+    // Calcula as dimensões do tooltip
+    const rectWidth = textWidth + padding * 2;
+    const rectHeight = textHeight + padding;
+
+    // Desenhar o fundo do tooltip com bordas arredondadas e transparência
+    ctx.beginPath();
+    drawRoundedRect(
+      ctx,
+      tooltipX,
+      tooltipY - rectHeight,
+      rectWidth,
+      rectHeight,
+      borderRadius
+    );
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Fundo preto com 30% de transparência
+    ctx.fill();
+
+    // Desenhar o texto centralizado no tooltip
+    ctx.fillStyle = "white";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      text,
+      tooltipX + rectWidth / 2, // Centraliza o texto no meio do retângulo
+      tooltipY - rectHeight / 2
+    );
+  }
+
+  // Função para desenhar um retângulo com bordas arredondadas
+  function drawRoundedRect(ctx, x, y, width, height, radius) {
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
   // Evento de soltar o mouse
   canvas.addEventListener("mouseup", handleCanvasMouseUp);
 
@@ -315,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("movementRange").value.trim(),
       10
     );
-    const tokenImage = document.getElementById("tokenImage").files[0];
+    const [tokenImage] = document.getElementById("tokenImage").files;
 
     if (tokenName && movementRange >= 1) {
       if (tokenImage) {
