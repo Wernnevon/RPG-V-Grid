@@ -1,4 +1,18 @@
-const socket = new WebSocket("wss://arda-vtt-server.onrender.com");
+import { MESSAGE_TYPE } from "./enums/message-type.enum.js";
+import { SOCKET_EVENTS } from "./enums/socket-event.enum.js";
+import { sendMessage } from "./modules/websocket.js";
+
+export const socket = new WebSocket("wss://arda-vtt-server.onrender.com");
+
+/** @TODO:
+ * 1. [x] - Enviar token na criação;
+ * 2. [x] - Remover token de todas as telas ao remover um token;
+ * 3. [] - Imagem de background para todos os clientes; evento novo
+ * 4. [x] - Imagem do token para todos os clientes;
+ * 5. [] - Atualziar as dimensões do grid para todos; evento novo
+ * 6. [] - Melhorar calculo de zoom: modZoom = gridSize/10 -> gridSize +=modZoom.
+ *         min/maxZoom deve ser no maximo 10 e no minimo -10;
+ */
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("main").addEventListener("contextmenu", (event) => {
@@ -270,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
         name: selectedToken.name,
       };
 
-      sendTokenUpdate(updatedToken);
+      sendMessage(MESSAGE_TYPE.TOKEN, selectedToken);
       redraw();
     } else if (isDraggingCanvas) {
       const scrollToX = startDragOffset.x - x;
@@ -405,12 +419,17 @@ document.addEventListener("DOMContentLoaded", () => {
               movementRange,
               image
             );
+            sendMessage(MESSAGE_TYPE.TOKEN, {
+              ...tokens.at(-1),
+              image: event.target.result,
+            });
             resetForm();
           };
         };
         reader.readAsDataURL(tokenImage);
       } else {
         addToken(tokenPosition.x, tokenPosition.y, tokenName, movementRange);
+        sendMessage(MESSAGE_TYPE.TOKEN, tokens.at(-1));
         resetForm();
       }
     } else {
@@ -481,9 +500,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Função para remover o token
   function removeToken() {
-    const index = tokens.indexOf(selectedToken);
+    const index = tokens.map(({ id }) => id).indexOf(selectedToken.id);
     if (index > -1) {
       tokens.splice(index, 1);
+      sendMessage(MESSAGE_TYPE.REMOVE_TOKEN, index);
     }
     selectedToken = null;
     contextMenu.style.display = "none";
@@ -550,32 +570,30 @@ document.addEventListener("DOMContentLoaded", () => {
   defaultBackgroundImage.src = "src/assets/defaultBackground.jpeg";
 
   // Quando a conexão for aberta
-  socket.addEventListener("open", () => {
+  socket.addEventListener(SOCKET_EVENTS.OPEN, () => {
     console.log("Conectado ao servidor WebSocket.");
   });
 
   // Quando receber uma mensagem do servidor
-  socket.addEventListener("message", (event) => {
-    console.log(event);
-    const data = JSON.parse(event.data);
+  socket.addEventListener(SOCKET_EVENTS.MESSAGE, processMessage);
 
-    if (data.type === "welcome") {
-      console.log(data.message);
+  function processMessage({ data: dataMessage }) {
+    if (dataMessage) {
+      const { type, data, message } = JSON.parse(dataMessage);
+      const startegyProcess = {
+        [MESSAGE_TYPE.WELCOME]: () => {
+          console.log(message);
+        },
+        [MESSAGE_TYPE.TOKEN]: () => {
+          updateToken(data);
+        },
+        [MESSAGE_TYPE.REMOVE_TOKEN]: () => {
+          deleteToken(data);
+        },
+        [MESSAGE_TYPE.GRID]: () => updateGrid,
+      };
+      startegyProcess[type]();
     }
-
-    if (data.type === "update") {
-      updateToken(data.token);
-    }
-  });
-
-  // Enviar dados para o servidor
-  function sendTokenUpdate(token) {
-    socket.send(
-      JSON.stringify({
-        type: "update",
-        token: token, // Dados do token
-      })
-    );
   }
 
   function updateToken(token) {
@@ -584,9 +602,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (existingToken) {
       existingToken.x = token.x;
       existingToken.y = token.y;
+      redraw();
     } else {
-      tokens.push(token);
+      if (token.image) {
+        loadTokenImage(token);
+      } else {
+        tokens.push(token);
+        redraw();
+      }
     }
+  }
+
+  function loadTokenImage(token) {
+    const tokenToSave = token;
+    const img = new Image();
+    img.src = token.image;
+    img.onload = function () {
+      tokenToSave.image = img;
+      tokens.push(tokenToSave);
+      redraw();
+    };
+  }
+
+  function deleteToken(tokenIndex) {
+    tokens.splice(tokenIndex, 1);
     redraw();
   }
 });
