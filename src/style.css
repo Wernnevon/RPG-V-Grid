@@ -126,7 +126,6 @@ canvas:active {
 
 .context-menu {
   display: none;
-  flex-direction: column;
   position: absolute;
   background-color: white;
   border: 1px solid black;
