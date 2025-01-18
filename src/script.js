@@ -5,12 +5,7 @@ import { sendMessage } from "./modules/websocket.js";
 export const socket = new WebSocket("wss://arda-vtt-server.onrender.com");
 
 /** @TODO:
- * 1. [x] - Enviar token na criação;
- * 2. [x] - Remover token de todas as telas ao remover um token;
- * 3. [] - Imagem de background para todos os clientes; evento novo
- * 4. [x] - Imagem do token para todos os clientes;
- * 5. [] - Atualziar as dimensões do grid para todos; evento novo
- * 6. [] - Melhorar calculo de zoom: modZoom = gridSize/10 -> gridSize +=modZoom.
+ * 1. [] - Melhorar calculo de zoom: modZoom = gridSize/10 -> gridSize +=modZoom.
  *         min/maxZoom deve ser no maximo 10 e no minimo -10;
  */
 
