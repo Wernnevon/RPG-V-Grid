@@ -126,6 +126,7 @@ canvas:active {
 
 .context-menu {
   display: none;
+  flex-direction: column;
   position: absolute;
   background-color: white;
   border: 1px solid black;
@@ -148,18 +149,9 @@ canvas:active {
   background-color: #eee;
 }
 
-.tooltip {
-  display: none;
-  position: absolute;
-  background-color: black;
-  color: white;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 12px;
-}
-
 .token-form {
   display: none;
+  flex-direction: column;
   position: absolute;
   width: 300px;
   height: auto;
@@ -225,7 +217,9 @@ canvas:active {
   cursor: pointer;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 5px 0px;
+  width: 100%;
+  text-align: center;
 }
 
 /* Esconde o input original */

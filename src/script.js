@@ -389,7 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
     form.style.top = `${y}px`;
 
     closeMenuOrForm();
-    form.style.display = "block";
+    form.style.display = "flex";
   }
 
   // Evento para adicionar token através do formulário
@@ -453,8 +453,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("tokenForm");
     const contextMenu = document.getElementById("contextMenu");
 
-    if (form.style.display === "block") hideTokenForm();
-    if (contextMenu.style.display === "block")
+    if (form.style.display === "flex") hideTokenForm();
+    if (contextMenu.style.display === "flex")
       contextMenu.style.display = "none";
   }
 
@@ -465,6 +465,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("tokenName").value = "John Doe";
     document.getElementById("movementRange").value = "7";
     document.getElementById("tokenImage").value = "";
+    document.getElementById("tokenImgLabel").innerHTML =
+      "Escolha uma imagem do token...";
     hideTokenForm();
   }
 
@@ -494,7 +496,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedToken.movementRange;
     isEditing = true;
     editingToken = selectedToken;
-    form.style.display = "block";
+    form.style.display = "flex";
     contextMenu.style.display = "none";
   }
 
@@ -533,13 +535,24 @@ document.addEventListener("DOMContentLoaded", () => {
           backgroundImage = new Image();
           backgroundImage.src = event.target.result;
           backgroundImage.onload = function () {
+            sendMessage(MESSAGE_TYPE.GRID, {
+              gridSize,
+              gridWidth: canvas.width,
+              gridHeight: canvas.height,
+              backgroundImage: event.target.result,
+            });
             redraw();
           };
         };
         reader.readAsDataURL(bgImageInput.files[0]);
         minimizeConfig();
       } else {
-        backgroundImage = null;
+        sendMessage(MESSAGE_TYPE.GRID, {
+          gridSize,
+          gridWidth: canvas.width,
+          gridHeight: canvas.height,
+          backgroundImage: null,
+        });
         redraw();
       }
     });
@@ -590,9 +603,43 @@ document.addEventListener("DOMContentLoaded", () => {
         [MESSAGE_TYPE.REMOVE_TOKEN]: () => {
           deleteToken(data);
         },
-        [MESSAGE_TYPE.GRID]: () => updateGrid,
+        [MESSAGE_TYPE.GRID]: () => {
+          updateGrid(data);
+        },
       };
       startegyProcess[type]();
+    }
+  }
+
+  function updateGrid(gridConfig) {
+    console.log("grid", gridConfig);
+    gridSize = gridConfig.gridSize;
+    canvas.width = gridConfig.gridWidth;
+    canvas.height = gridConfig.gridHeight;
+    document.getElementById("gridSize").value = gridConfig.gridSize;
+    document.getElementById("gridWidth").value =
+      gridConfig.gridWidth / gridConfig.gridSize;
+    document.getElementById("gridHeight").value =
+      gridConfig.gridHeight / gridConfig.gridSize;
+    if (gridConfig.backgroundImage) {
+      console.log();
+      loadBackground(gridConfig.backgroundImage);
+    } else {
+      redraw();
+    }
+  }
+
+  function loadBackground(gridImage) {
+    if (gridImage !== backgroundImage.src) {
+      const img = new Image();
+      img.src = gridImage; // Atualiza a imagem de fundo para todos
+      img.onload = function () {
+        backgroundImage = img;
+        bgImageInput.files.length = 0;
+        redraw();
+      };
+    } else {
+      redraw();
     }
   }
 
