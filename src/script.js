@@ -620,10 +620,8 @@ document.addEventListener("DOMContentLoaded", () => {
         canvas.width = gridConfig.gridWidth * tileSize;
         canvas.height = gridConfig.gridHeight * tileSize;
         document.getElementById("gridSize").value = gridConfig.gridSize;
-        document.getElementById("gridWidth").value =
-            gridConfig.gridWidth / gridConfig.gridSize;
-        document.getElementById("gridHeight").value =
-            gridConfig.gridHeight / gridConfig.gridSize;
+        document.getElementById("gridWidth").value = gridConfig.gridWidth;
+        document.getElementById("gridHeight").value = gridConfig.gridHeight;
         if (gridConfig.backgroundImage) {
             console.log();
             loadBackground(gridConfig.backgroundImage);
