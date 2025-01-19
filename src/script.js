@@ -522,7 +522,6 @@ document.addEventListener("DOMContentLoaded", () => {
             getDimensions();
             canvas.height = gridHeight * tileSize;
             canvas.width = gridWidth * tileSize;
-            zoom = 1;
             tileSize = parseInt(document.getElementById("gridSize").value, 10);
             canvas.width =
                 parseInt(document.getElementById("gridWidth").value, 10) *
