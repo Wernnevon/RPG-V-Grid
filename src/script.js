@@ -9,16 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
     });
 
-    document.getElementById("zoomIn").addEventListener("click", () => {
-        zoom = Math.min(zoom + 0.1, 3); // Limita o zoom máximo para 3x
-        redraw();
-    });
-
-    document.getElementById("zoomOut").addEventListener("click", () => {
-        zoom = Math.max(zoom - 0.1, 0.5); // Limita o zoom mínimo para 0.5x
-        redraw();
-    });
-
     const inputBgImg = document.getElementById("gridBackground");
     const labelBgImg = document.getElementById("imageInputLabel");
 
@@ -37,10 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const canvas = document.getElementById("rpgCanvas");
     const ctx = canvas.getContext("2d");
-    let gridSize = 40; // Tamanho de cada célula do grid
-    let zoom = 1;
-    canvas.width = 24 * gridSize;
-    canvas.height = 23 * gridSize;
+    let tileSize = 40; // Tamanho de cada célula do grid
+    let gridWidth = 24;
+    let gridHeight = 23;
+    canvas.width = gridWidth * tileSize;
+    canvas.height = gridHeight * tileSize;
     let tokens = [];
     let selectedToken = null;
     let isMovingToken = false;
@@ -87,13 +78,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.strokeStyle = "grey";
 
         // Desenhar linhas verticais
-        for (let x = 0; x <= canvas.width; x += gridSize) {
+        for (let x = 0; x <= canvas.width; x += tileSize) {
             ctx.moveTo(x, 0);
             ctx.lineTo(x, canvas.height);
         }
 
         // Desenhar linhas horizontais
-        for (let y = 0; y <= canvas.height; y += gridSize) {
+        for (let y = 0; y <= canvas.height; y += tileSize) {
             ctx.moveTo(0, y);
             ctx.lineTo(canvas.width, y);
         }
@@ -105,9 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Função para desenhar os tokens com imagem e bordas aleatórias
     function drawTokens() {
         tokens.forEach((token) => {
-            const tokenX = token.x * gridSize + gridSize / 2;
-            const tokenY = token.y * gridSize + gridSize / 2;
-            const tokenRadius = gridSize / 2 - 5;
+            const tokenX = token.x * tileSize + tileSize / 2;
+            const tokenY = token.y * tileSize + tileSize / 2;
+            const tokenRadius = tileSize / 2 - 5;
 
             // Desenhar a borda
             ctx.beginPath();
@@ -151,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         const endX = Math.min(
             initialTokenPosition.x + token.movementRange,
-            Math.round(canvas.width / gridSize) - 1
+            Math.round(canvas.width / tileSize) - 1
         );
         const startY = Math.max(
             initialTokenPosition.y - token.movementRange,
@@ -159,12 +150,12 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         const endY = Math.min(
             initialTokenPosition.y + token.movementRange,
-            Math.round(canvas.height / gridSize) - 1
+            Math.round(canvas.height / tileSize) - 1
         );
 
         for (let x = startX; x <= endX; x++) {
             for (let y = startY; y <= endY; y++) {
-                ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
             }
         }
         ctx.closePath();
@@ -199,8 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Função para encontrar o token clicado
     function findToken(x, y) {
-        const gridX = Math.floor(x / gridSize);
-        const gridY = Math.floor(y / gridSize);
+        const gridX = Math.floor(x / tileSize);
+        const gridY = Math.floor(y / tileSize);
         return tokens.find((token) => token.x === gridX && token.y === gridY);
     }
 
@@ -240,8 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 // Mostra o formulário próximo ao token clicado
                 showForm(event.pageX, event.pageY);
-                tokenPosition.x = Math.floor(x / gridSize);
-                tokenPosition.y = Math.floor(y / gridSize);
+                tokenPosition.x = Math.floor(x / tileSize);
+                tokenPosition.y = Math.floor(y / tileSize);
             }
         }
     }
@@ -255,8 +246,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const y = event.clientY - rect.top;
 
         if (isMovingToken && selectedToken) {
-            const gridX = Math.floor(x / gridSize);
-            const gridY = Math.floor(y / gridSize);
+            const gridX = Math.floor(x / tileSize);
+            const gridY = Math.floor(y / tileSize);
             if (
                 Math.abs(gridX - initialTokenPosition.x) <=
                     selectedToken.movementRange &&
@@ -266,6 +257,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 selectedToken.x = gridX;
                 selectedToken.y = gridY;
             }
+            // Quando o token for movido ou criado, envie uma atualização
+            const updatedToken = {
+                id: selectedToken.id,
+                x: selectedToken.x,
+                y: selectedToken.y,
+                movementRange: selectedToken.movementRange,
+                name: selectedToken.name,
+            };
 
             sendMessage(MESSAGE_TYPE.TOKEN, selectedToken);
             redraw();
@@ -311,8 +310,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const textWidth = ctx.measureText(text).width;
         const textHeight = 16; // Altura aproximada do texto
 
-        const tooltipX = token.x * gridSize;
-        const tooltipY = token.y * gridSize;
+        const tooltipX = token.x * tileSize;
+        const tooltipY = token.y * tileSize;
 
         // Calcula as dimensões do tooltip
         const rectWidth = textWidth + padding * 2;
@@ -369,17 +368,11 @@ document.addEventListener("DOMContentLoaded", () => {
         redraw();
     }
 
-    // canvas.addEventListener("click", (event) => {
-    //   if (event.button === 1 && contextMenu.style.display === "flex") {
-    //     contextMenu.style.display = "none";
-    //   }
-    // });
-
     // Função para mostrar o formulário de criação de token
     function showForm(x, y) {
         const form = document.getElementById("tokenForm");
 
-        form.style.left = `${x + gridSize / 1.5}px`;
+        form.style.left = `${x + tileSize / 1.5}px`;
         form.style.top = `${y}px`;
 
         closeMenuOrForm();
@@ -417,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             ...tokens.at(-1),
                             image: event.target.result,
                         });
-                        hideTokenForm();
+                        resetForm();
                     };
                 };
                 reader.readAsDataURL(tokenImage);
@@ -429,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     movementRange
                 );
                 sendMessage(MESSAGE_TYPE.TOKEN, tokens.at(-1));
-                hideTokenForm();
+                resetForm();
             }
         } else {
             alert("Preencha todos os campos corretamente.");
@@ -440,7 +433,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function hideTokenForm() {
         const tokenForm = document.getElementById("tokenForm");
         tokenForm.style.display = "none";
-        resetForm();
     }
 
     // Evento para fechar o formulário
@@ -454,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const contextMenu = document.getElementById("contextMenu");
 
         if (form.style.display === "flex") hideTokenForm();
-        if (contextMenu.style.display === "block")
+        if (contextMenu.style.display === "flex")
             contextMenu.style.display = "none";
     }
 
@@ -467,22 +459,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("tokenImage").value = "";
         document.getElementById("tokenImgLabel").innerHTML =
             "Escolha uma imagem do token...";
+        hideTokenForm();
     }
 
     // Função para redesenhar o canvas
     function redraw() {
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Reseta transformações
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Centraliza o zoom em relação ao centro do canvas
-        const translateX = (canvas.width * (1 - zoom)) / 2;
-        const translateY = (canvas.height * (1 - zoom)) / 2;
-        ctx.translate(translateX, translateY);
-        ctx.scale(zoom, zoom);
-
         drawGrid();
         drawTokens();
-
         tokens.forEach((token) => {
             if (token === selectedToken && isMovingToken)
                 drawMovementArea(token);
@@ -491,8 +474,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Função para mostrar o menu de contexto
     function showContextMenu(x, y) {
-        contextMenu.style.left = `${x + gridSize / 2}px`;
-        contextMenu.style.top = `${y - gridSize / 2}px`;
+        contextMenu.style.left = `${x + tileSize / 2}px`;
+        contextMenu.style.top = `${y - tileSize / 2}px`;
         contextMenu.style.display = "block";
     }
 
@@ -526,23 +509,29 @@ document.addEventListener("DOMContentLoaded", () => {
     editTokenOption.addEventListener("click", editToken);
     removeTokenOption.addEventListener("click", removeToken);
 
-    // Atualiza dimensões do grid
-    function setDimensions() {
-        gridSize = parseInt(document.getElementById("gridSize").value, 10);
-        canvas.width =
-            parseInt(document.getElementById("gridWidth").value, 10) * gridSize;
-        canvas.height =
-            parseInt(document.getElementById("gridHeight").value, 10) *
-            gridSize;
+    function getDimensions() {
+        tileSize = parseInt(document.getElementById("gridSize").value, 10);
+        gridWidth = parseInt(document.getElementById("gridWidth").value, 10);
+        gridHeight = parseInt(document.getElementById("gridHeight").value, 10);
     }
 
     // Evento para aplicar configurações do grid
     document
         .getElementById("applyGridSettings")
         .addEventListener("click", function () {
-            zoom = gridSize / 10;
-            setDimensions();
+            getDimensions();
+            canvas.height = gridHeight * tileSize;
+            canvas.width = gridWidth * tileSize;
+            zoom = 1;
+            tileSize = parseInt(document.getElementById("gridSize").value, 10);
+            canvas.width =
+                parseInt(document.getElementById("gridWidth").value, 10) *
+                tileSize;
+            canvas.height =
+                parseInt(document.getElementById("gridHeight").value, 10) *
+                tileSize;
             const bgImageInput = document.getElementById("gridBackground");
+
             // Verifica se há uma imagem de fundo selecionada
             if (bgImageInput && bgImageInput.files.length > 0) {
                 const reader = new FileReader();
@@ -551,9 +540,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     backgroundImage.src = event.target.result;
                     backgroundImage.onload = function () {
                         sendMessage(MESSAGE_TYPE.GRID, {
-                            gridSize,
-                            gridWidth: canvas.width,
-                            gridHeight: canvas.height,
+                            gridSize: tileSize,
+                            gridWidth,
+                            gridHeight,
                             backgroundImage: event.target.result,
                         });
                         redraw();
@@ -563,9 +552,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 minimizeConfig();
             } else {
                 sendMessage(MESSAGE_TYPE.GRID, {
-                    gridSize,
-                    gridWidth: canvas.width,
-                    gridHeight: canvas.height,
+                    gridSize: tileSize,
+                    gridWidth,
+                    gridHeight,
                     backgroundImage: null,
                 });
                 redraw();
@@ -628,9 +617,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateGrid(gridConfig) {
         console.log("grid", gridConfig);
-        gridSize = gridConfig.gridSize;
-        canvas.width = gridConfig.gridWidth;
-        canvas.height = gridConfig.gridHeight;
+        tileSize = gridConfig.gridSize;
+        canvas.width = gridConfig.gridWidth * tileSize;
+        canvas.height = gridConfig.gridHeight * tileSize;
         document.getElementById("gridSize").value = gridConfig.gridSize;
         document.getElementById("gridWidth").value =
             gridConfig.gridWidth / gridConfig.gridSize;
