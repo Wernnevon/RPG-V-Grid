@@ -5,26 +5,6 @@ import { sendMessage } from "./modules/websocket.js";
 export const socket = new WebSocket("wss://arda-vtt-server.onrender.com");
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("main").addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-    });
-
-    const inputBgImg = document.getElementById("gridBackground");
-    const labelBgImg = document.getElementById("imageInputLabel");
-
-    inputBgImg.addEventListener("change", function () {
-        const fileName = this.files[0].name;
-        labelBgImg.textContent = fileName;
-    });
-
-    const inputTokenImg = document.getElementById("tokenImage");
-    const labelTokenImg = document.getElementById("tokenImgLabel");
-
-    inputTokenImg.addEventListener("change", function () {
-        const fileName = this.files[0].name;
-        labelTokenImg.textContent = fileName;
-    });
-
     const canvas = document.getElementById("rpgCanvas");
     const ctx = canvas.getContext("2d");
     let tileSize = 40; // Tamanho de cada célula do grid
@@ -47,6 +27,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const editTokenOption = document.getElementById("editToken");
     const removeTokenOption = document.getElementById("removeToken");
     const minGridConfig = document.getElementById("containerMinimize");
+    const formTokenSubmitButton = document.getElementById(
+        "formTokenSubmitButton"
+    );
+
+    document.getElementById("main").addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+    });
+
+    const inputBgImg = document.getElementById("gridBackground");
+    const labelBgImg = document.getElementById("imageInputLabel");
+
+    inputBgImg.addEventListener("change", function () {
+        const fileName = this.files[0].name;
+        labelBgImg.textContent = fileName;
+    });
+
+    const inputTokenImg = document.getElementById("tokenImage");
+    const labelTokenImg = document.getElementById("tokenImgLabel");
+
+    inputTokenImg.addEventListener("change", function () {
+        const fileName = this.files[0].name;
+        labelTokenImg.textContent = fileName;
+    });
 
     minGridConfig.addEventListener("click", minimizeConfig);
 
@@ -262,11 +265,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 id: selectedToken.id,
                 x: selectedToken.x,
                 y: selectedToken.y,
-                movementRange: selectedToken.movementRange,
-                name: selectedToken.name,
             };
 
-            sendMessage(MESSAGE_TYPE.TOKEN, selectedToken);
+            sendMessage(MESSAGE_TYPE.TOKEN, updatedToken);
             redraw();
         } else if (isDraggingCanvas) {
             const scrollToX = startDragOffset.x - x;
@@ -300,44 +301,49 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Função para exibir o nome do token com fundo transparente
+    // Função para exibir o nome do token centralizado
     function displayTokenName(token) {
         const text = token.name;
         const padding = 10;
         const borderRadius = 8;
 
-        ctx.font = "14px Arial";
+        ctx.font = "16px Arial";
         const textWidth = ctx.measureText(text).width;
-        const textHeight = 16; // Altura aproximada do texto
+        const textHeight = 16;
 
-        const tooltipX = token.x * tileSize;
-        const tooltipY = token.y * tileSize;
+        // Posição central do token
+        const tokenX = token.x * tileSize + tileSize / 2;
+        const tokenY = token.y * tileSize;
 
-        // Calcula as dimensões do tooltip
+        // Largura e altura do tooltip
         const rectWidth = textWidth + padding * 2;
-        const rectHeight = textHeight + padding;
+        const rectHeight = textHeight + padding * 2;
 
-        // Desenhar o fundo do tooltip com bordas arredondadas e transparência
+        // Posição X/Y ajustada para centralização
+        const tooltipX = tokenX - rectWidth / 2;
+        const tooltipY = tokenY - rectHeight - 10; // 10px acima do token
+
+        // Desenha o fundo
         ctx.beginPath();
         drawRoundedRect(
             ctx,
             tooltipX,
-            tooltipY - rectHeight,
+            tooltipY,
             rectWidth,
             rectHeight,
             borderRadius
         );
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Fundo preto com 30% de transparência
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         ctx.fill();
 
-        // Desenhar o texto centralizado no tooltip
+        // Texto centralizado
         ctx.fillStyle = "white";
         ctx.textBaseline = "middle";
         ctx.textAlign = "center";
         ctx.fillText(
             text,
-            tooltipX + rectWidth / 2, // Centraliza o texto no meio do retângulo
-            tooltipY - rectHeight / 2
+            tokenX, // Centraliza horizontalmente
+            tooltipY + rectHeight / 2 // Centraliza verticalmente
         );
     }
 
@@ -380,11 +386,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Evento para adicionar token através do formulário
-    document
-        .getElementById("addTokenBtn")
-        .addEventListener("click", handleAddToken);
+    formTokenSubmitButton.addEventListener("click", handleSaveToken);
 
-    function handleAddToken() {
+    function handleSaveToken() {
         const tokenName = document.getElementById("tokenName").value.trim();
         const movementRange = parseInt(
             document.getElementById("movementRange").value.trim(),
@@ -446,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const contextMenu = document.getElementById("contextMenu");
 
         if (form.style.display === "flex") hideTokenForm();
-        if (contextMenu.style.display === "flex")
+        if (contextMenu.style.display === "block")
             contextMenu.style.display = "none";
     }
 
@@ -522,13 +526,6 @@ document.addEventListener("DOMContentLoaded", () => {
             getDimensions();
             canvas.height = gridHeight * tileSize;
             canvas.width = gridWidth * tileSize;
-            tileSize = parseInt(document.getElementById("gridSize").value, 10);
-            canvas.width =
-                parseInt(document.getElementById("gridWidth").value, 10) *
-                tileSize;
-            canvas.height =
-                parseInt(document.getElementById("gridHeight").value, 10) *
-                tileSize;
             const bgImageInput = document.getElementById("gridBackground");
 
             // Verifica se há uma imagem de fundo selecionada
@@ -645,26 +642,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateToken(token) {
-        // Atualiza a posição do token recebido
+        if (token.image) {
+            loadTokenImage(token);
+            return;
+        }
+
         const existingToken = tokens.find((t) => t.id === token.id);
         if (existingToken) {
+            // Atualiza a posição do token recebido
             existingToken.x = token.x;
             existingToken.y = token.y;
-            redraw();
         } else {
-            if (token.image) {
-                loadTokenImage(token);
-            } else {
-                tokens.push(token);
-                redraw();
-            }
+            tokens.push(token);
         }
+        redraw();
     }
 
     function loadTokenImage(token) {
+        const existingToken = tokens.find((t) => t.id === token.id);
         const tokenToSave = token;
         const img = new Image();
         img.src = token.image;
+
+        if (existingToken) {
+            img.onload = function () {
+                existingToken.image = img;
+                redraw();
+            };
+            return;
+        }
         img.onload = function () {
             tokenToSave.image = img;
             tokens.push(tokenToSave);
@@ -676,4 +682,10 @@ document.addEventListener("DOMContentLoaded", () => {
         tokens.splice(tokenIndex, 1);
         redraw();
     }
+
+    // Evento para limpar o grid
+    document.getElementById("clearGrid").addEventListener("click", () => {
+        tokens = [];
+        redraw();
+    });
 });

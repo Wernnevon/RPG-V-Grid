@@ -16,6 +16,7 @@ main {
 	height: 100%;
 	gap: 10px;
 	box-sizing: border-box;
+	letter-spacing: .5px;
 }
 
 .grid-settings {
@@ -105,7 +106,6 @@ main {
 
 .zoom-controls div img {
 	width: 100%;
-
 }
 
 .grid-container {
@@ -117,8 +117,8 @@ canvas {
 	width: max-content;
 	height: max-content;
 	zoom: 1;
+	cursor: grab;
 }
-
 
 canvas:active {
 	cursor: grabbing;
@@ -132,6 +132,7 @@ canvas:active {
 	border: 1px solid black;
 	z-index: 10;
 	box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+	min-width: max-content;
 }
 
 .context-menu ul {
@@ -192,7 +193,6 @@ canvas:active {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Esconde o input original */
 .token-form .custom-file-input {
 	display: none;
 }
@@ -208,7 +208,15 @@ canvas:active {
 	margin-top: 20px;
 }
 
-/* Estiliza o label para o input file */
+button {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 18px;
+	font-weight: 600;
+	text-transform: lowercase;
+	font-variant: small-caps;
+	letter-spacing: .5px;
+}
+
 .custom-file-label {
 	font-size: 14px;
 	font-weight: normal;
@@ -222,7 +230,6 @@ canvas:active {
 	text-align: center;
 }
 
-/* Esconde o input original */
 .custom-file-input {
 	display: none;
 }

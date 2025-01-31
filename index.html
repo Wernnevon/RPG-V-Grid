@@ -4,9 +4,8 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="src/style.css">
 	<title>ARDA</title>
-
+	<link rel="stylesheet" href="src/style.css">
 </head>
 
 <body>
@@ -14,23 +13,17 @@
 		<div class="grid-settings" id="gridConfig" title="Configurações do grid">
 			<span id="containerMinimize">&#9881;</span>
 			<h3>Configurações do Grid</h3>
-			<!-- largura -->
 			<label for="gridWidth">Largura do Grid:</label>
 			<input type="number" id="gridWidth" value="24">
-
-			<!-- altura -->
 			<label for="gridHeight">Altura do Grid:</label>
 			<input type="number" id="gridHeight" value="23">
-
 			<label for="gridSize">Tamanho da tile:</label>
 			<input type="number" id="gridSize" value="40">
-
-			<!-- fundo -->
 			<label for="gridBackground" class="custom-file-label" id="imageInputLabel">Escolha uma imagem de
 				fundo...</label>
 			<input type="file" id="gridBackground" accept="image/*" class="custom-file-input">
-
 			<button type="submit" id="applyGridSettings">Aplicar Configurações</button>
+			<button type="button" id="clearGrid">Limpar Grid</button>
 		</div>
 		<div class="grid-container" id="gridContainer">
 			<canvas id="rpgCanvas"></canvas>
@@ -46,15 +39,11 @@
 			<h3>Adicionar Token</h3>
 			<label for="tokenName">Nome do Token:</label>
 			<input type="text" id="tokenName" placeholder="Nome do Token" value="John Doe">
-
 			<label for="movementRange">Deslocamento (em quadrados):</label>
 			<input type="number" id="movementRange" placeholder="Deslocamento" value="7">
-
-			<!-- token img -->
 			<label for="tokenImage" class="custom-file-label" id="tokenImgLabel">Escolha uma imagem do token...</label>
 			<input type="file" id="tokenImage" accept="image/*" class="custom-file-input">
-
-			<button type="submit" id="addTokenBtn">Adicionar Token</button>
+			<button type="submit" id="formTokenSubmitButton">Salvar</button>
 		</div>
 	</main>
 	<script type="module" src="src/script.js"></script>
